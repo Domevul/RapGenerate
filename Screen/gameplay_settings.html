@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rhyme Clash - Settings</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Space+Grotesk:wght@400;500;700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    :root {
+      --primary-color: #7311d4;
+      --secondary-color: #a855f7;
+      --background-color: #1a1a1a;
+      --surface-color: #261933;
+      --on-surface-color: #362348;
+      --border-color: #4d3267;
+      --text-primary: #ffffff;
+      --text-secondary: #ad92c9;
+      --accent-color: #8b5cf6;
+      --select-button-svg: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(173,146,201)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e');
+    }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-primary);
+    }
+    .slider-track {
+      background-color: var(--on-surface-color);
+    }
+    .slider-thumb {
+      background-color: var(--primary-color);
+    }
+    .slider-fill {
+      background-color: var(--primary-color);
+    }
+  </style>
+</head>
+<body class="bg-[var(--background-color)] text-[var(--text-primary)]">
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<div class="flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[var(--on-surface-color)] px-6 sm:px-10 py-4">
+<div class="flex items-center gap-4">
+<div class="text-[var(--primary-color)] w-8 h-8">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" fill="currentColor"></path>
+</svg>
+</div>
+<h1 class="text-xl font-bold">Rhyme Clash</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-[var(--on-surface-color)] text-[var(--text-primary)] hover:bg-[var(--border-color)] transition-colors">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"></path>
+</svg>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtAExfwQmUZuN5zYvyiJtmvO04w5YQEYwI9W7CmQP2VvUSatwIbNWgekCw1Upq4Ukc0xYtOPBMo68Et45pFjU9mufD8Q4GSj5tgQlmlRYlcynngSLjPtBBxsNe9R8ABQjnUjshcom7TQ5xyKBwuZ2Fe2l73igk-4DD9sldr7LigmG4o_o8Y_aruGUDrqqOv0k29iQdX2Qn8-4y2-S4hjUTOoj9H14fL8-o0v7H-s9b0EHwuYNmqTW6mcKxo0zmgPZIdc52LLUIIHHe");'></div>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-2xl space-y-8">
+<div>
+<h2 class="text-4xl font-bold tracking-tight">Settings</h2>
+</div>
+<section class="space-y-4">
+<h3 class="text-xl font-bold text-[var(--text-secondary)]">Sound</h3>
+<div class="bg-[var(--surface-color)] p-6 rounded-xl">
+<div class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+<label class="text-base font-medium" for="bgm-volume">BGM Volume</label>
+<div class="col-span-2 flex items-center gap-4">
+<input class="w-full h-2 bg-[var(--on-surface-color)] rounded-lg appearance-none cursor-pointer slider-track accent-[var(--primary-color)]" id="bgm-volume" max="100" min="0" type="range" value="75"/>
+<span class="text-base font-medium w-8 text-center">75</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+<label class="text-base font-medium" for="sfx-volume">SE Volume</label>
+<div class="col-span-2 flex items-center gap-4">
+<input class="w-full h-2 bg-[var(--on-surface-color)] rounded-lg appearance-none cursor-pointer slider-track accent-[var(--primary-color)]" id="sfx-volume" max="100" min="0" type="range" value="50"/>
+<span class="text-base font-medium w-8 text-center">50</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-4">
+<h3 class="text-xl font-bold text-[var(--text-secondary)]">Language</h3>
+<div class="bg-[var(--surface-color)] p-6 rounded-xl">
+<select class="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[var(--text-primary)] focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] border border-[var(--border-color)] bg-transparent focus:border-[var(--primary-color)] h-14 bg-[image:--select-button-svg] placeholder:text-[var(--text-secondary)] p-4 text-base font-normal leading-normal">
+<option>English</option>
+<option>日本語</option>
+<option>Español</option>
+</select>
+</div>
+</section>
+<section class="space-y-4">
+<h3 class="text-xl font-bold text-[var(--text-secondary)]">About</h3>
+<div class="bg-[var(--surface-color)] rounded-xl divide-y divide-[var(--on-surface-color)]">
+<a class="flex items-center justify-between p-4 hover:bg-[var(--on-surface-color)] transition-colors rounded-t-xl" href="#">
+<p class="text-base font-medium">Help / Support</p>
+<div class="text-[var(--text-secondary)]"><svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg></div>
+</a>
+<a class="flex items-center justify-between p-4 hover:bg-[var(--on-surface-color)] transition-colors" href="#">
+<p class="text-base font-medium">Privacy Policy</p>
+<div class="text-[var(--text-secondary)]"><svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg></div>
+</a>
+<a class="flex items-center justify-between p-4 hover:bg-[var(--on-surface-color)] transition-colors rounded-b-xl" href="#">
+<p class="text-base font-medium">Credits</p>
+<div class="text-[var(--text-secondary)]"><svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg></div>
+</a>
+</div>
+</section>
+<section class="space-y-4">
+<h3 class="text-xl font-bold text-[var(--text-secondary)]">Data Management</h3>
+<div class="bg-[var(--surface-color)] rounded-xl">
+<a class="flex items-center justify-between p-4 hover:bg-[var(--on-surface-color)] transition-colors rounded-xl" href="#">
+<p class="text-base font-medium">Save Data</p>
+<div class="text-[var(--text-secondary)]"><svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg></div>
+</a>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

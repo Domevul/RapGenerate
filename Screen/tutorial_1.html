@@ -1,0 +1,67 @@
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #7211d4;
+        --secondary-color: #362348;
+        --accent-color: #ad92c9;
+        --background-color: #1a1122;
+      }
+      .neon-glow {
+        box-shadow:
+          0 0 5px var(--primary-color),
+          0 0 10px var(--primary-color),
+          0 0 20px var(--primary-color),
+          0 0 40px var(--primary-color);
+      }
+    </style>
+</head>
+<body class="bg-[var(--background-color)]" style='font-family: "Space Grotesk", "Noto Sans", sans-serif;'>
+<div class="relative min-h-screen">
+<div class="absolute inset-0 bg-center bg-cover blur-sm opacity-50" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASifn4wp-wmWX3EdulFiV72QvSZ8P9Fm5SYzLxXJJt8pYzcjSBYd_E8qWe0klfqTI2h1h6oaLazHKUl3FPWaNUTeR1DBuEmG4jCCZ3oT_sztSJKzdcYATK7OJj6vGdDJIxMIubL4l1cQN2AVw3sccV9wX6ZKkArau9uStyXqA34fFqq1PoXfQI4maOn_ktTxwyXHWfUI-c9ZQSzuvBpiOY7FFHOr_7sGwKs2tVN9NuYp8XlDxX3jwph0RrT5iiJe-UNt7pwCmbncci");'></div>
+<div class="absolute inset-0 bg-black/60"></div>
+<div class="relative flex flex-col h-full min-h-screen p-4 md:p-8">
+<div class="flex-grow flex items-center justify-center">
+<div class="relative">
+<div class="absolute -inset-4 border-4 border-dashed border-[var(--primary-color)] rounded-2xl animate-pulse"></div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-64 ring-4 ring-[var(--primary-color)] neon-glow" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASifn4wp-wmWX3EdulFiV72QvSZ8P9Fm5SYzLxXJJt8pYzcjSBYd_E8qWe0klfqTI2h1h6oaLazHKUl3FPWaNUTeR1DBuEmG4jCCZ3oT_sztSJKzdcYATK7OJj6vGdDJIxMIubL4l1cQN2AVw3sccV9wX6ZKkArau9uStyXqA34fFqq1PoXfQI4maOn_ktTxwyXHWfUI-c9ZQSzuvBpiOY7FFHOr_7sGwKs2tVN9NuYp8XlDxX3jwph0RrT5iiJe-UNt7pwCmbncci");'></div>
+</div>
+</div>
+<div class="w-full max-w-2xl mx-auto bg-black/50 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+<div class="text-center mb-6">
+<h1 class="text-2xl font-bold text-white tracking-tight">ワードを選択</h1>
+<p class="text-[var(--accent-color)] mt-1">画面中央のカードから、相手にぶつける言葉を選ぼう。</p>
+</div>
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-medium text-white/70">ステップ 1 / 4</span>
+<div class="flex space-x-1.5">
+<div class="h-2 w-8 bg-[var(--primary-color)] rounded-full"></div>
+<div class="h-2 w-8 bg-white/20 rounded-full"></div>
+<div class="h-2 w-8 bg-white/20 rounded-full"></div>
+<div class="h-2 w-8 bg-white/20 rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<button class="flex-1 px-6 py-3 rounded-lg bg-[var(--secondary-color)] text-white font-bold text-base hover:bg-white/20 transition-colors duration-300">
+              スキップ
+            </button>
+<button class="flex-1 px-6 py-3 rounded-lg bg-[var(--primary-color)] text-white font-bold text-base hover:bg-purple-600 transition-colors duration-300 flex items-center justify-center gap-2">
+<span>次へ</span>
+<span class="material-symbols-outlined">
+              arrow_forward
+              </span>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>
