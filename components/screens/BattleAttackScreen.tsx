@@ -39,8 +39,15 @@ export function BattleAttackScreen() {
     Array<{ id: number; judgement: TapJudgement; timestamp: number }>
   >([]);
   const [lastJudgement, setLastJudgement] = useState<TapJudgement | null>(null);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [countDown, setCountDown] = useState(3);
+  const [tapEffects, setTapEffects] = useState<
+    Array<{ id: number; x: number; y: number; judgement: TapJudgement }>
+  >([]);
   const startTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number>(0);
+  const nextEffectIdRef = useRef(0);
 
   // タイムライン生成（初回のみ）
   useEffect(() => {
@@ -80,11 +87,22 @@ export function BattleAttackScreen() {
 
     setTimeline(newTimeline);
 
-    // 自動開始
-    setTimeout(() => {
-      setIsPlaying(true);
-      startTimeRef.current = Date.now();
-    }, 500);
+    // カウントダウン開始
+    const countdownInterval = setInterval(() => {
+      setCountDown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          // カウントダウン終了後、ゲーム開始
+          setTimeout(() => {
+            setCountDown(0);
+            setIsPlaying(true);
+            startTimeRef.current = Date.now();
+          }, 500);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 800);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -146,8 +164,30 @@ export function BattleAttackScreen() {
     return "Miss";
   };
 
+  // タップエフェクト追加ヘルパー
+  const addTapEffect = (x: number, y: number, judgement: TapJudgement) => {
+    const effectId = nextEffectIdRef.current++;
+    setTapEffects((prev) => [...prev, { id: effectId, x, y, judgement }]);
+    setTimeout(() => {
+      setTapEffects((prev) => prev.filter((e) => e.id !== effectId));
+    }, 800);
+  };
+
+  // コンボ更新
+  const updateCombo = (judgement: TapJudgement) => {
+    if (judgement === "Perfect" || judgement === "Good") {
+      setCombo((prev) => {
+        const newCombo = prev + 1;
+        setMaxCombo((max) => Math.max(max, newCombo));
+        return newCombo;
+      });
+    } else {
+      setCombo(0);
+    }
+  };
+
   // メインボタンタップ（コロケーション）
-  const handleMainTap = () => {
+  const handleMainTap = (e: React.MouseEvent) => {
     if (!activeItem || activeItem.type !== "collocation") return;
 
     const alreadyTapped = collocationTaps.some((t) => t.id === activeItem.id);
@@ -163,10 +203,14 @@ export function BattleAttackScreen() {
 
     setLastJudgement(judgement);
     setTimeout(() => setLastJudgement(null), 500);
+
+    // エフェクトとコンボ
+    addTapEffect(e.clientX, e.clientY, judgement);
+    updateCombo(judgement);
   };
 
   // フィラーボタンタップ（自由リズム）
-  const handleFillerTap = () => {
+  const handleFillerTap = (e: React.MouseEvent) => {
     // BPM120のビートに近いタイミングかチェック
     const beatIndex = Math.round(currentTime / BEAT_DURATION);
     const nearestBeatTime = beatIndex * BEAT_DURATION;
@@ -190,6 +234,10 @@ export function BattleAttackScreen() {
 
     setLastJudgement(judgement);
     setTimeout(() => setLastJudgement(null), 500);
+
+    // エフェクトとコンボ
+    addTapEffect(e.clientX, e.clientY, judgement);
+    updateCombo(judgement);
   };
 
   // 全歌詞
@@ -202,7 +250,43 @@ export function BattleAttackScreen() {
   const progress = (currentTime / TOTAL_DURATION) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black p-4 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black p-4 flex flex-col relative">
+      {/* カウントダウン表示 */}
+      {countDown > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="text-9xl font-bold text-cyan-400 animate-ping">
+            {countDown}
+          </div>
+        </div>
+      )}
+
+      {/* タップエフェクト */}
+      {tapEffects.map((effect) => (
+        <div
+          key={effect.id}
+          className="fixed pointer-events-none z-40 animate-ping"
+          style={{
+            left: effect.x,
+            top: effect.y,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <div
+            className={`text-3xl font-bold ${
+              effect.judgement === "Perfect"
+                ? "text-green-400"
+                : effect.judgement === "Good"
+                ? "text-yellow-400"
+                : effect.judgement === "Bad"
+                ? "text-orange-400"
+                : "text-red-400"
+            }`}
+          >
+            {effect.judgement}!
+          </div>
+        </div>
+      ))}
+
       {/* 上部: 全歌詞表示 */}
       <div className="mb-8">
         <div className="text-center text-gray-400 text-sm mb-2">YOUR RAP</div>
@@ -264,22 +348,17 @@ export function BattleAttackScreen() {
           />
         </div>
 
-        {/* 判定表示 */}
-        {lastJudgement && (
+        {/* コンボ表示 */}
+        {combo > 0 && (
           <div className="text-center mb-4">
-            <div
-              className={`text-4xl font-bold animate-bounce ${
-                lastJudgement === "Perfect"
-                  ? "text-green-400"
-                  : lastJudgement === "Good"
-                  ? "text-yellow-400"
-                  : lastJudgement === "Bad"
-                  ? "text-orange-400"
-                  : "text-red-400"
-              }`}
-            >
-              {lastJudgement}!
+            <div className="text-2xl font-bold text-yellow-400">
+              {combo} COMBO!
             </div>
+            {combo >= 5 && (
+              <div className="text-sm text-yellow-300 animate-pulse">
+                🔥 ON FIRE! 🔥
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -306,9 +385,12 @@ export function BattleAttackScreen() {
         </Button>
       </div>
 
-      {/* デバッグ情報 */}
-      <div className="text-center text-xs text-gray-500">
-        {Math.floor(currentTime / 1000)}s / {Math.floor(TOTAL_DURATION / 1000)}s
+      {/* デバッグ情報 + 統計 */}
+      <div className="text-center text-xs text-gray-500 flex justify-between px-4">
+        <span>
+          {Math.floor(currentTime / 1000)}s / {Math.floor(TOTAL_DURATION / 1000)}s
+        </span>
+        <span>MAX COMBO: {maxCombo}</span>
       </div>
     </div>
   );
