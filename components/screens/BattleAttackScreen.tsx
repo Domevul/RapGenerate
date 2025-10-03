@@ -1,20 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/store";
 import { getRandomFiller } from "@/lib/fillers-data";
 import { calculateTurnResult } from "@/lib/game-logic";
 import type { TapJudgement, FillerTapResult } from "@/lib/types";
 
-type SequenceItem =
-  | { type: "collocation"; content: string; id: number }
-  | {
-      type: "filler";
-      content: string;
-      filler: ReturnType<typeof getRandomFiller>;
-      id: number;
-    };
+// BPM120 = 1拍500ms
+const BPM = 120;
+const BEAT_DURATION = 60000 / BPM; // 500ms
+const TOTAL_DURATION = BEAT_DURATION * 16; // 16拍 = 8秒
+
+type TimelineItem = {
+  type: "collocation" | "filler";
+  content: string;
+  startTime: number; // ms
+  duration: number; // ms
+  id: number;
+  filler?: ReturnType<typeof getRandomFiller>;
+};
 
 export function BattleAttackScreen() {
   const selectedTurnCollocations = useGameStore(
@@ -26,231 +31,266 @@ export function BattleAttackScreen() {
     (state) => state.currentEnemyTurnInfo
   );
 
-  const [displayText, setDisplayText] = useState("");
-  const [currentType, setCurrentType] = useState<"collocation" | "filler" | null>(null);
-  const [currentItemId, setCurrentItemId] = useState<number | null>(null);
-  const [tapWindowStart, setTapWindowStart] = useState(0);
-  const [markerScale, setMarkerScale] = useState(1);
-  const [lastJudgement, setLastJudgement] = useState<TapJudgement | null>(null);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [tapResults, setTapResults] = useState<FillerTapResult[]>([]);
-  const [collocationTapResults, setCollocationTapResults] = useState<
+  const [collocationTaps, setCollocationTaps] = useState<
     Array<{ id: number; judgement: TapJudgement; timestamp: number }>
   >([]);
-  const [sequence, setSequence] = useState<SequenceItem[]>([]);
-  const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
+  const [lastJudgement, setLastJudgement] = useState<TapJudgement | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef<number>(0);
 
-  // シーケンス生成（初回のみ）
+  // タイムライン生成（初回のみ）
   useEffect(() => {
     const collocations = Object.values(selectedTurnCollocations).filter(
       (c) => c !== null
     );
 
-    const newSequence: SequenceItem[] = [];
+    const newTimeline: TimelineItem[] = [];
+    let currentPos = 0;
     let idCounter = 0;
+
+    // 各コロケーション = 2拍（1000ms）、フィラー = 1拍（500ms）
     for (let i = 0; i < collocations.length; i++) {
-      newSequence.push({
+      newTimeline.push({
         type: "collocation",
         content: collocations[i]!.text,
+        startTime: currentPos,
+        duration: BEAT_DURATION * 2, // 2拍
         id: idCounter++,
       });
+      currentPos += BEAT_DURATION * 2;
+
+      // 最後以外はフィラーを挿入
       if (i < collocations.length - 1) {
         const filler = getRandomFiller();
-        newSequence.push({
+        newTimeline.push({
           type: "filler",
           content: filler.text,
-          filler,
+          startTime: currentPos,
+          duration: BEAT_DURATION, // 1拍
           id: idCounter++,
+          filler,
         });
+        currentPos += BEAT_DURATION;
       }
     }
-    setSequence(newSequence);
+
+    setTimeline(newTimeline);
+
+    // 自動開始
+    setTimeout(() => {
+      setIsPlaying(true);
+      startTimeRef.current = Date.now();
+    }, 500);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // シーケンス進行
+  // タイマー進行
   useEffect(() => {
-    if (sequence.length === 0) return;
+    if (!isPlaying) return;
 
-    let currentIndex = currentSequenceIndex;
+    const updateTime = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      setCurrentTime(elapsed);
 
-    if (currentIndex >= sequence.length) {
-      // 全てのタップ結果を合算
-      const allTapResults = [...tapResults];
-      allTapResults.forEach((result) => addFillerTapResult(result));
-
-      const enemyType = currentEnemyTurnInfo?.collocation.type || "#攻撃";
-      const result = calculateTurnResult(
-        Object.values(selectedTurnCollocations),
-        enemyType,
-        allTapResults
-      );
-      finishAttackPhase(result);
-      return;
-    }
-
-    const item = sequence[currentIndex];
-    setDisplayText(item.content);
-    setCurrentType(item.type);
-    setCurrentItemId(item.id);
-    setTapWindowStart(Date.now());
-    setMarkerScale(1);
-    setLastJudgement(null);
-    setCurrentSequenceIndex(currentIndex);
-
-    // タイミングマーカーアニメーション
-    let scale = 1;
-    const markerInterval = setInterval(() => {
-      scale -= 0.015;
-      if (scale <= 0) {
-        clearInterval(markerInterval);
-        // タイミングウィンドウ終了時の処理
-        const alreadyTapped =
-          item.type === "filler"
-            ? tapResults.some((r) => r.filler.id === item.filler.id)
-            : collocationTapResults.some((r) => r.id === item.id);
-
-        if (!alreadyTapped) {
-          if (item.type === "filler") {
-            setTapResults((prev) => [
-              ...prev,
-              {
-                filler: item.filler,
-                judgement: "Miss",
-                timestamp: Date.now(),
-              },
-            ]);
-          } else {
-            setCollocationTapResults((prev) => [
-              ...prev,
-              {
-                id: item.id,
-                judgement: "Miss",
-                timestamp: Date.now(),
-              },
-            ]);
-          }
-        }
-      } else {
-        setMarkerScale(scale);
+      if (elapsed >= TOTAL_DURATION) {
+        // 終了処理
+        setIsPlaying(false);
+        const enemyType = currentEnemyTurnInfo?.collocation.type || "#攻撃";
+        const result = calculateTurnResult(
+          Object.values(selectedTurnCollocations),
+          enemyType,
+          tapResults
+        );
+        finishAttackPhase(result);
+        return;
       }
-    }, 20);
 
-    // 次のアイテムへ進む
-    const timer = setTimeout(() => {
-      setCurrentSequenceIndex((prev) => prev + 1);
-    }, 1500);
+      animationFrameRef.current = requestAnimationFrame(updateTime);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(updateTime);
 
     return () => {
-      clearInterval(markerInterval);
-      clearTimeout(timer);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSequenceIndex, sequence]);
+  }, [isPlaying]);
 
-  const handleMainButtonTap = () => {
-    if (currentType !== "collocation" || currentItemId === null) return;
+  // 現在アクティブなアイテム
+  const activeItem = timeline.find(
+    (item) =>
+      currentTime >= item.startTime &&
+      currentTime < item.startTime + item.duration
+  );
 
-    const alreadyTapped = collocationTapResults.some((r) => r.id === currentItemId);
-    if (alreadyTapped) return;
+  // タップ判定
+  const calculateJudgement = (
+    tapTime: number,
+    targetTime: number
+  ): TapJudgement => {
+    const diff = Math.abs(tapTime - targetTime);
+    const perfectWindow = 100; // ±100ms
+    const goodWindow = 200; // ±200ms
+    const badWindow = 300; // ±300ms
 
-    const now = Date.now();
-    const diff = now - tapWindowStart;
-    const judgement = calculateJudgement(diff);
-
-    setCollocationTapResults((prev) => [
-      ...prev,
-      {
-        id: currentItemId,
-        judgement,
-        timestamp: now,
-      },
-    ]);
-
-    setLastJudgement(judgement);
-    setTimeout(() => setLastJudgement(null), 500);
-  };
-
-  const handleFillerButtonTap = () => {
-    if (currentType !== "filler" || currentItemId === null) return;
-    if (sequence.length === 0 || currentSequenceIndex >= sequence.length) return;
-
-    const currentItem = sequence[currentSequenceIndex];
-    if (currentItem.type !== "filler") return;
-
-    // 既にタップ済みかチェック
-    const alreadyTapped = tapResults.some(
-      (r) => r.filler.id === currentItem.filler.id
-    );
-    if (alreadyTapped) return;
-
-    const now = Date.now();
-    const diff = now - tapWindowStart;
-    const judgement = calculateJudgement(diff);
-
-    // 現在表示中のフィラーを使用
-    setTapResults((prev) => [
-      ...prev,
-      {
-        filler: currentItem.filler,
-        judgement,
-        timestamp: now,
-      },
-    ]);
-
-    setLastJudgement(judgement);
-    setTimeout(() => setLastJudgement(null), 500);
-  };
-
-  const calculateJudgement = (diff: number): TapJudgement => {
-    const perfectWindow = 1500 * 0.15;
-    const goodWindow = 1500 * 0.3;
-    const badWindow = 1500 * 0.5;
-
-    if (diff < perfectWindow || diff > 1500 - perfectWindow) {
-      return "Perfect";
-    } else if (diff < goodWindow || diff > 1500 - goodWindow) {
-      return "Good";
-    } else if (diff < badWindow || diff > 1500 - badWindow) {
-      return "Bad";
-    }
+    if (diff < perfectWindow) return "Perfect";
+    if (diff < goodWindow) return "Good";
+    if (diff < badWindow) return "Bad";
     return "Miss";
   };
 
+  // メインボタンタップ（コロケーション）
+  const handleMainTap = () => {
+    if (!activeItem || activeItem.type !== "collocation") return;
+
+    const alreadyTapped = collocationTaps.some((t) => t.id === activeItem.id);
+    if (alreadyTapped) return;
+
+    const targetTime = activeItem.startTime;
+    const judgement = calculateJudgement(currentTime, targetTime);
+
+    setCollocationTaps((prev) => [
+      ...prev,
+      { id: activeItem.id, judgement, timestamp: currentTime },
+    ]);
+
+    setLastJudgement(judgement);
+    setTimeout(() => setLastJudgement(null), 500);
+  };
+
+  // フィラーボタンタップ（自由リズム）
+  const handleFillerTap = () => {
+    // BPM120のビートに近いタイミングかチェック
+    const beatIndex = Math.round(currentTime / BEAT_DURATION);
+    const nearestBeatTime = beatIndex * BEAT_DURATION;
+    const diff = Math.abs(currentTime - nearestBeatTime);
+
+    let judgement: TapJudgement;
+    if (diff < 100) judgement = "Perfect";
+    else if (diff < 200) judgement = "Good";
+    else if (diff < 300) judgement = "Bad";
+    else judgement = "Miss";
+
+    const filler = getRandomFiller();
+    setTapResults((prev) => [
+      ...prev,
+      {
+        filler,
+        judgement,
+        timestamp: currentTime,
+      },
+    ]);
+
+    setLastJudgement(judgement);
+    setTimeout(() => setLastJudgement(null), 500);
+  };
+
+  // 全歌詞
+  const allLyrics = timeline
+    .filter((item) => item.type === "collocation")
+    .map((item) => item.content)
+    .join(" / ");
+
+  // プログレスバーの位置（0-100%）
+  const progress = (currentTime / TOTAL_DURATION) * 100;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black p-4 flex flex-col">
-      {/* 上部: ラップテキスト表示エリア */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="text-center mb-8">
-          <p className="text-4xl text-white font-bold animate-pulse">
-            {displayText}
-          </p>
-        </div>
-
-        {/* タイミングマーカー */}
-        <div className="relative w-48 h-48 flex items-center justify-center">
-          <div className="absolute w-24 h-24 border-4 border-cyan-500 rounded-full" />
-          <div
-            className="absolute border-4 border-magenta-500 rounded-full transition-all"
-            style={{
-              width: `${markerScale * 192}px`,
-              height: `${markerScale * 192}px`,
-              opacity: markerScale,
-            }}
-          />
-          {lastJudgement && (
-            <div className="absolute text-3xl font-bold text-cyan-400 animate-bounce">
-              {lastJudgement}!
-            </div>
-          )}
-        </div>
+      {/* 上部: 全歌詞表示 */}
+      <div className="mb-8">
+        <div className="text-center text-gray-400 text-sm mb-2">YOUR RAP</div>
+        <div className="text-center text-white text-lg px-4">{allLyrics}</div>
       </div>
 
-      {/* 下部: 常設ボタン */}
+      {/* 中央: タイムラインとシーケンスバー */}
+      <div className="flex-1 flex flex-col justify-center px-4">
+        {/* 現在再生中の歌詞 */}
+        <div className="text-center mb-8">
+          <div className="text-5xl text-cyan-400 font-bold mb-2">
+            {activeItem?.content || ""}
+          </div>
+          <div className="text-sm text-magenta-400">
+            {activeItem?.type === "collocation" ? "メイン" : "フィラー"}
+          </div>
+        </div>
+
+        {/* タイムライン */}
+        <div className="relative w-full h-24 mb-8">
+          {/* 背景レーン */}
+          <div className="absolute inset-0 bg-gray-900/50 rounded-lg border-2 border-gray-700" />
+
+          {/* タイムラインアイテム */}
+          {timeline.map((item) => {
+            const left = (item.startTime / TOTAL_DURATION) * 100;
+            const width = (item.duration / TOTAL_DURATION) * 100;
+            const isPassed = currentTime >= item.startTime + item.duration;
+            const isActive = activeItem?.id === item.id;
+
+            return (
+              <div
+                key={item.id}
+                className={`absolute top-2 bottom-2 rounded transition-all ${
+                  isActive
+                    ? "bg-cyan-500 border-2 border-cyan-300 scale-110"
+                    : isPassed
+                    ? "bg-gray-600"
+                    : item.type === "collocation"
+                    ? "bg-cyan-700 border border-cyan-500"
+                    : "bg-magenta-700 border border-magenta-500"
+                }`}
+                style={{
+                  left: `${left}%`,
+                  width: `${width}%`,
+                }}
+              >
+                <div className="text-white text-xs text-center mt-2 truncate px-1">
+                  {item.content}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* シーケンスバー（再生位置） */}
+          <div
+            className="absolute top-0 bottom-0 w-1 bg-white shadow-lg shadow-white/50 transition-all"
+            style={{ left: `${progress}%` }}
+          />
+        </div>
+
+        {/* 判定表示 */}
+        {lastJudgement && (
+          <div className="text-center mb-4">
+            <div
+              className={`text-4xl font-bold animate-bounce ${
+                lastJudgement === "Perfect"
+                  ? "text-green-400"
+                  : lastJudgement === "Good"
+                  ? "text-yellow-400"
+                  : lastJudgement === "Bad"
+                  ? "text-orange-400"
+                  : "text-red-400"
+              }`}
+            >
+              {lastJudgement}!
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 下部: ボタン */}
       <div className="pb-8 flex justify-center gap-4">
         <Button
           variant="neon"
           size="xl"
-          onClick={handleMainButtonTap}
+          onClick={handleMainTap}
+          disabled={!isPlaying}
           className="w-48 h-24 text-2xl"
         >
           メイン
@@ -258,11 +298,17 @@ export function BattleAttackScreen() {
         <Button
           variant="neonMagenta"
           size="xl"
-          onClick={handleFillerButtonTap}
+          onClick={handleFillerTap}
+          disabled={!isPlaying}
           className="w-48 h-24 text-2xl"
         >
           フィラー
         </Button>
+      </div>
+
+      {/* デバッグ情報 */}
+      <div className="text-center text-xs text-gray-500">
+        {Math.floor(currentTime / 1000)}s / {Math.floor(TOTAL_DURATION / 1000)}s
       </div>
     </div>
   );
