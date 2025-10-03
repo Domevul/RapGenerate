@@ -1,10 +1,46 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { useGameStore } from "@/lib/store";
 
 export function TitleScreen() {
   const setScreen = useGameStore((state) => state.setScreen);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  const tutorialSteps = [
+    {
+      title: "ゲームの流れ",
+      message:
+        "このゲームは2ターン制のラップバトルです。\n相手のラップを聞いて、4枚のコロケーション（言葉）を選んで返します。",
+    },
+    {
+      title: "スコアリング",
+      message:
+        "スコアは3要素で決まります：\n\n• リズム評価(25%) - タップのタイミング\n• ライミング評価(45%) - 韻のチェーン\n• タイプ評価(30%) - 相手との相性",
+    },
+    {
+      title: "勝利条件",
+      message:
+        "2ターンの合計で150点以上を目指しましょう！\n\n同じ韻を連続で使うと「チェーンボーナス」\n相手のタイプに合わせると「相性ボーナス」が得られます。",
+    },
+  ];
+
+  const handleTutorialNext = () => {
+    if (tutorialStep < tutorialSteps.length - 1) {
+      setTutorialStep(tutorialStep + 1);
+    } else {
+      setShowTutorial(false);
+      setTutorialStep(0);
+    }
+  };
+
+  const handleTutorialSkip = () => {
+    setShowTutorial(false);
+    setTutorialStep(0);
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-purple-900 via-black to-black p-4">
@@ -26,6 +62,14 @@ export function TitleScreen() {
           >
             はじめる
           </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={() => setShowTutorial(true)}
+          >
+            遊び方
+          </Button>
         </div>
 
         <div className="text-sm text-gray-400">
@@ -33,6 +77,17 @@ export function TitleScreen() {
           <p>相手の攻撃を読み、最高のラップで返せ。</p>
         </div>
       </div>
+
+      <Modal
+        show={showTutorial}
+        title={tutorialSteps[tutorialStep]?.title}
+        message={tutorialSteps[tutorialStep]?.message}
+        onNext={handleTutorialNext}
+        onSkip={tutorialStep === 0 ? handleTutorialSkip : undefined}
+        nextLabel={
+          tutorialStep === tutorialSteps.length - 1 ? "はじめる" : "次へ"
+        }
+      />
     </div>
   );
 }

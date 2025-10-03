@@ -6,7 +6,10 @@
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git log:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nImplement rap battle game MVP with complete game logic\n\n- Add core game logic: scoring system with rhythm, rhyming chains, and type compatibility\n- Implement 7 game screens: title, deck select, enemy turn, battle prepare, battle attack, turn result, final result\n- Add 32 collocations organized into 4 rhyming groups (A, B, C, D) and 4 types\n- Create rhythm game UI with persistent buttons and timing markers\n- Fix critical bugs: filler tap duplication, timer auto-advance, resource depletion handling\n- Improve type safety: remove non-null assertions, add proper error handling\n- Fix React hooks: correct useEffect dependency arrays to prevent infinite loops\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

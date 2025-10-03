@@ -144,3 +144,52 @@ export interface TypeCompatibility {
   effectiveType: CollocationType;
   multiplier: number;
 }
+
+// チュートリアルレベル
+export type TutorialLevel = 1 | 2 | 3;
+
+// チュートリアルステップ
+export type TutorialStep =
+  | "welcome"
+  | "enemy-turn-intro"
+  | "prepare-intro"
+  | "slot1-select"
+  | "slot2-select"
+  | "slot3-select"
+  | "slot4-select"
+  | "attack-intro"
+  | "attack-phase"
+  | "result-intro"
+  | "level-complete";
+
+// チュートリアル制限設定
+export interface TutorialRestrictions {
+  strategySelection: boolean;
+  deckBuilder: boolean;
+  turnCount: number;
+  timeLimit: number | null; // null = 無制限
+  showHints: boolean;
+  highlightRecommended: boolean;
+}
+
+// チュートリアル状態
+export interface TutorialState {
+  isActive: boolean;
+  currentLevel: TutorialLevel;
+  completedLevels: TutorialLevel[];
+  currentStep: TutorialStep | null;
+  skipped: boolean;
+  restrictions: Record<TutorialLevel, TutorialRestrictions>;
+}
+
+// UI支援設定
+export interface UISupportSettings {
+  hintsEnabled: boolean;
+  deckDisplayEnabled: boolean;
+  chainPredictionEnabled: boolean;
+  typeMatchingEnabled: boolean;
+  comboTimeLimit: 8 | 10 | 12 | 16;
+  tapJudgement: "easy" | "normal" | "hard";
+  bgmVolume: number;
+  seVolume: number;
+}
