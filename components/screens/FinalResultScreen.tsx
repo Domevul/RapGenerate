@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGameStore } from "@/lib/store";
 import { WIN_CONDITION } from "@/lib/constants";
+import { audioManager } from "@/lib/audio-manager";
 
 export function FinalResultScreen() {
   const totalScore = useGameStore((state) => state.totalScore);
@@ -31,6 +32,7 @@ export function FinalResultScreen() {
       setScreen("deck-select");
     } else if (currentLevel === 2 && isWin) {
       // レベル2クリア → 通常モードへ
+      audioManager.playBGM("title");
       setTutorialActive(false);
       resetGame();
       setScreen("title");
@@ -142,6 +144,7 @@ export function FinalResultScreen() {
                   variant="outline"
                   size="lg"
                   onClick={() => {
+                    audioManager.playBGM("title");
                     resetGame();
                     setScreen("title");
                   }}

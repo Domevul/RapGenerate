@@ -11,8 +11,11 @@
 - **状態管理**: Zustand
 - **アイコン**: Lucide React
 - **音声**: Web Audio API (プログラム生成ビート)
+- **テスト**: Vitest + React Testing Library
 
 ## プロジェクト構造
+
+詳細なアーキテクチャ情報は [ARCHITECTURE.md](./ARCHITECTURE.md) を参照してください。
 
 ```
 rapbattle/
@@ -23,22 +26,31 @@ rapbattle/
 ├── components/
 │   ├── screens/          # 各画面コンポーネント
 │   │   ├── TitleScreen.tsx
-│   │   ├── TutorialScreen.tsx
-│   │   ├── WordSelectScreen.tsx
+│   │   ├── DeckSelectScreen.tsx
+│   │   ├── EnemyTurnScreen.tsx
+│   │   ├── BattlePrepareScreen.tsx
+│   │   ├── BattleAttackScreen.tsx
+│   │   ├── TurnResultScreen.tsx
+│   │   ├── FinalResultScreen.tsx
 │   │   ├── SettingsScreen.tsx
-│   │   ├── LoadScreen.tsx
-│   │   ├── ResultScreen.tsx
-│   │   └── GameOverScreen.tsx
-│   └── ui/               # Shadcn UI コンポーネント
+│   │   └── ErrorScreen.tsx
+│   └── ui/               # 再利用可能なUIコンポーネント
 │       ├── button.tsx
 │       ├── card.tsx
-│       └── slider.tsx
-├── lib/
-│   ├── store.ts          # Zustand ストア（ゲーム状態管理）
-│   ├── types.ts          # TypeScript 型定義
-│   ├── words-data.ts     # ワードデータ
-│   └── utils.ts          # ユーティリティ関数
-└── Screen/               # 元のHTML画面（参考用）
+│       ├── slider.tsx
+│       ├── modal.tsx
+│       ├── tutorial-modal.tsx
+│       └── remaining-deck-display.tsx
+├── lib/                   # ビジネスロジック
+│   ├── store.ts          # Zustand状態管理
+│   ├── types.ts          # TypeScript型定義
+│   ├── game-logic.ts     # ゲームロジック
+│   ├── game-logic.test.ts # テスト
+│   ├── audio-config.ts   # 音声設定
+│   ├── audio-manager.ts  # 音声マネージャー
+│   ├── constants.ts      # ゲーム定数
+│   └── ...data.ts        # 各種データファイル
+└── public/audio/         # 音声ファイル（未配置）
 ```
 
 ## セットアップ
@@ -57,6 +69,40 @@ npm run dev
 ```
 http://localhost:3000
 ```
+
+## テスト
+
+### テスト実行
+```bash
+# テスト実行（watch mode）
+npm test
+
+# テスト実行（1回のみ）
+npm test -- --run
+
+# UI付きテスト実行
+npm run test:ui
+
+# カバレッジ計測
+npm run test:coverage
+```
+
+### TDD（テスト駆動開発）の原則
+このプロジェクトではt-wadaの手法に沿ったTDDを採用しています：
+
+1. **Red**: まずテストを書く（失敗することを確認）
+2. **Green**: 最小限のコードでテストを成功させる
+3. **Refactor**: コードを改善する
+
+**重要**: コード変更前に必ず `npm test -- --run` でテストを実行し、全テストが成功することを確認してください。
+
+### テストファイル
+- `lib/game-logic.test.ts` - ゲームロジックのユニットテスト（11テスト）
+  - リズムスコア計算
+  - ライミングチェーン評価
+  - タイプ相性評価
+  - ターン結果統合
+  - 残りカード管理
 
 ## 実装済み機能
 

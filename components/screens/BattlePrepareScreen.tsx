@@ -1,160 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TutorialModal } from "@/components/ui/tutorial-modal";
 import { useGameStore } from "@/lib/store";
-import { GAME_CONFIG } from "@/lib/constants";
-import { TUTORIAL_LEVEL1_RECOMMENDED, TUTORIAL_LEVEL2_RECOMMENDED } from "@/lib/tutorial-data";
 import { cn } from "@/lib/utils";
 import { RemainingDeckDisplay } from "@/components/ui/remaining-deck-display";
 import { calculateCardAnnotations } from "@/lib/game-logic";
-import type { SelectedTurnCollocations, RhymingGroup } from "@/lib/types";
+import { useCardSelection } from "@/hooks/useCardSelection";
+import { useTutorialHints } from "@/hooks/useTutorialHints";
+import type { SelectedTurnCollocations } from "@/lib/types";
 
 export function BattlePrepareScreen() {
-  const remainingCollocations = useGameStore(
-    (state) => state.remainingCollocations
-  );
-  const selectedTurnCollocations = useGameStore(
-    (state) => state.selectedTurnCollocations
-  );
-  const selectCollocationForSlot = useGameStore(
-    (state) => state.selectCollocationForSlot
-  );
-  const clearSlot = useGameStore((state) => state.clearSlot);
-  const canProceedToAttack = useGameStore((state) => state.canProceedToAttack);
-  const proceedToAttack = useGameStore((state) => state.proceedToAttack);
   const currentTurn = useGameStore((state) => state.currentTurn);
   const currentEnemyTurnInfo = useGameStore(
     (state) => state.currentEnemyTurnInfo
   );
   const uiSupport = useGameStore((state) => state.uiSupport);
-  const tutorialState = useGameStore((state) => state.tutorialState);
-  const setError = useGameStore((state) => state.setError);
 
-  // チュートリアルモードの場合はレベルに応じた制限時間を適用
-  const getTimeLimit = () => {
-    if (tutorialState.isActive) {
-      const restriction = tutorialState.restrictions[tutorialState.currentLevel];
-      if (restriction.timeLimit) {
-        return restriction.timeLimit / 1000; // ミリ秒→秒
-      }
-    }
-    return GAME_CONFIG.PREPARE_PHASE_DURATION / 1000;
-  };
+  const {
+    timeLeft,
+    selectedSlot,
+    setSelectedSlot,
+    slots,
+    handleSlotClick,
+    handleCardClick,
+    remainingCollocations,
+    selectedTurnCollocations,
+    canProceedToAttack,
+    proceedToAttack,
+  } = useCardSelection();
 
-  const [timeLeft, setTimeLeft] = useState(getTimeLimit());
-  const [selectedSlot, setSelectedSlot] =
-    useState<keyof SelectedTurnCollocations | null>(null);
-  const [showTutorialHint, setShowTutorialHint] = useState(false);
-  const [tutorialSlotStep, setTutorialSlotStep] = useState<number>(0);
-
-  // リソース不足チェック
-  useEffect(() => {
-    if (remainingCollocations.all.length < GAME_CONFIG.TURN_COLLOCATIONS_COUNT) {
-      console.error(
-        `リソース不足: 残り${remainingCollocations.all.length}個（必要: ${GAME_CONFIG.TURN_COLLOCATIONS_COUNT}個）`
-      );
-      // エラー画面への遷移
-      setError("resource-depleted");
-    }
-  }, [remainingCollocations, setError]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        const newTime = prev - 1;
-        if (newTime <= 0) {
-          // タイムアップ時に自動遷移
-          if (canProceedToAttack()) {
-            proceedToAttack();
-          }
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const slots: (keyof SelectedTurnCollocations)[] = [
-    "slot1",
-    "slot2",
-    "slot3",
-    "slot4",
-  ];
-
-  // チュートリアルモード: 最初のヒント表示
-  useEffect(() => {
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentLevel === 1 &&
-      !showTutorialHint
-    ) {
-      setShowTutorialHint(true);
-      setSelectedSlot("slot1"); // 最初のスロットを自動選択
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tutorialState.isActive, tutorialState.currentLevel]);
-
-  // チュートリアルヒントメッセージ（レベルごとに異なる）
-  const getTutorialHintMessages = () => {
-    if (tutorialState.currentLevel === 1) {
-      return [
-        "💡 まず最初の掴みを選ぼう\n\n光っているカードがおすすめだよ!",
-        "💡 次は相手への返しを選ぼう\n\n同じ韻（B系）を選ぶとチェーンになるよ!",
-        "💡 もう一押し!\n\n韻を続けてボーナスを狙おう!",
-        "💡 最後に締めよう\n\nこれで4枚選択完了だ!",
-      ];
-    } else if (tutorialState.currentLevel === 2) {
-      if (currentTurn === 1) {
-        return [
-          "💡 掴みから始めよう\n\n今回は韻のチェーンを狙うよ!",
-          "💡 A系の韻を選ぼう\n\n「〜い」で終わるカードだ!",
-          "💡 チェーンを続けよう!\n\n同じA系でボーナス倍率アップ!",
-          "💡 締めのカードを選ぼう\n\nチェーンボーナスで高得点だ!",
-        ];
-      } else {
-        return [
-          "💡 2ターン目！掴みから\n\n今度はタイプ相性を考えよう!",
-          "💡 相手は#自慢タイプ\n\n#カウンターで効果的に返そう!",
-          "💡 カウンター系を続けよう\n\nタイプ相性で高得点!",
-          "💡 締めて勝利を掴め!\n\n戦略的な選択が鍵だ!",
-        ];
-      }
-    }
-    return [];
-  };
-
-  const tutorialHintMessages = getTutorialHintMessages();
-
-  const handleTutorialCardSelect = (slotIndex: number) => {
-    if (slotIndex < 3) {
-      // 次のスロットへ
-      setTutorialSlotStep(slotIndex + 1);
-      setSelectedSlot(slots[slotIndex + 1]);
-      setShowTutorialHint(true);
-    } else {
-      // 全スロット選択完了
-      setShowTutorialHint(false);
-    }
-  };
-
-  // チュートリアルモード: カード選択時の処理
-  const handleCollocationSelect = (
-    slot: keyof SelectedTurnCollocations,
-    collocation: any
-  ) => {
-    selectCollocationForSlot(slot, collocation);
-
-    if (tutorialState.isActive && tutorialState.currentLevel === 1) {
-      const slotIndex = slots.indexOf(slot);
-      handleTutorialCardSelect(slotIndex);
-    }
-  };
+  const {
+    showTutorialHint,
+    tutorialMessages,
+    tutorialSlotStep,
+    setShowTutorialHint,
+    recommendedCardIds,
+    tutorialState,
+  } = useTutorialHints(selectedSlot);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black p-4">
@@ -185,24 +69,21 @@ export function BattlePrepareScreen() {
                     : "bg-black/80 border-gray-600",
                   collocation && "border-magenta-400"
                 )}
-                onClick={() => setSelectedSlot(slot)}
+                onClick={() => handleSlotClick(slot)}
               >
                 <CardContent className="p-4 min-h-[100px] flex flex-col justify-center">
                   <p className="text-sm text-gray-400 mb-2">スロット {index + 1}</p>
                   {collocation ? (
                     <>
                       <p className="text-white text-sm">{collocation.text}</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearSlot(slot);
-                        }}
-                      >
-                        クリア
-                      </Button>
+                      <div className="flex gap-1 mt-2">
+                        <span className="text-xs px-1 py-0.5 rounded bg-magenta-900/50 text-magenta-300">
+                          {collocation.type}
+                        </span>
+                        <span className="text-xs px-1 py-0.5 rounded bg-cyan-900/50 text-cyan-300">
+                          {collocation.rhyming}
+                        </span>
+                      </div>
                     </>
                   ) : (
                     <p className="text-gray-500 text-sm">未選択</p>
@@ -230,7 +111,7 @@ export function BattlePrepareScreen() {
                         selectedCollocations: Object.values(
                           selectedTurnCollocations
                         ),
-                        enemyType: currentEnemyTurnInfo?.type,
+                        enemyType: currentEnemyTurnInfo?.type as import("@/lib/types").CollocationType | undefined,
                         remainingByRhyming: {
                           A: remainingCollocations.byRhyming.A.length,
                           B: remainingCollocations.byRhyming.B.length,
@@ -242,23 +123,9 @@ export function BattlePrepareScreen() {
                     : [];
 
                 // チュートリアルモード: 推奨カードかチェック
-                const isRecommended = (() => {
-                  if (!tutorialState.isActive || !selectedSlot) return false;
-
-                  if (tutorialState.currentLevel === 1) {
-                    return Object.entries(TUTORIAL_LEVEL1_RECOMMENDED).some(
-                      ([slot, id]) => slot === selectedSlot && id === collocation.id
-                    );
-                  } else if (tutorialState.currentLevel === 2) {
-                    const turnKey = currentTurn === 1 ? 'turn1' : 'turn2';
-                    const recommended = TUTORIAL_LEVEL2_RECOMMENDED[turnKey];
-                    return Object.entries(recommended).some(
-                      ([slot, id]) => slot === selectedSlot && id === collocation.id
-                    );
-                  }
-
-                  return false;
-                })();
+                const isRecommended =
+                  tutorialState.isActive &&
+                  recommendedCardIds.includes(collocation.id);
 
                 return (
                   <Card
@@ -268,11 +135,7 @@ export function BattlePrepareScreen() {
                       isRecommended &&
                         "border-[#FFD700] border-4 animate-pulse shadow-[0_0_20px_#FFD700]"
                     )}
-                    onClick={() => {
-                      if (selectedSlot) {
-                        handleCollocationSelect(selectedSlot, collocation);
-                      }
-                    }}
+                    onClick={() => handleCardClick(collocation)}
                   >
                     <CardContent className="p-3">
                       {isRecommended && (
@@ -345,7 +208,7 @@ export function BattlePrepareScreen() {
       <TutorialModal
         show={showTutorialHint}
         title={`スロット${tutorialSlotStep + 1}を選ぼう`}
-        message={tutorialHintMessages[tutorialSlotStep]}
+        message={tutorialMessages[tutorialSlotStep]}
         onNext={() => setShowTutorialHint(false)}
         nextButtonText="わかった"
       />

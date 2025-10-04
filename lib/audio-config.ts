@@ -5,10 +5,10 @@ export const AUDIO_CONFIG = {
   // BPM設定（変更可能: 60-180）
   bpm: 120,
 
-  // BGMファイルパス（将来的にファイル差し替え可能）
+  // BGMファイルパス（現在はダミーWAV、将来的にMP3に差し替え可能）
   bgm: {
-    title: "/audio/bgm/title.mp3",
-    battle: "/audio/bgm/battle.mp3",
+    title: "/audio/bgm/title.wav",
+    battle: "/audio/bgm/battle.wav",
   },
 
   // ビート音ファイルパス（プログラム生成の場合は未使用）
@@ -17,15 +17,15 @@ export const AUDIO_CONFIG = {
     snare: "/audio/beat/snare.mp3",
   },
 
-  // 効果音ファイルパス
+  // 効果音ファイルパス（現在はダミーWAV、将来的にMP3に差し替え可能）
   sfx: {
-    tapPerfect: "/audio/sfx/tap-perfect.mp3",
-    tapGood: "/audio/sfx/tap-good.mp3",
-    tapBad: "/audio/sfx/tap-bad.mp3",
-    tapMiss: "/audio/sfx/tap-miss.mp3",
-    select: "/audio/sfx/select.mp3",
-    confirm: "/audio/sfx/confirm.mp3",
-    result: "/audio/sfx/result.mp3",
+    tapPerfect: "/audio/sfx/tap-perfect.wav",
+    tapGood: "/audio/sfx/tap-good.wav",
+    tapBad: "/audio/sfx/tap-bad.wav",
+    tapMiss: "/audio/sfx/tap-miss.wav",
+    select: "/audio/sfx/select.wav",
+    confirm: "/audio/sfx/confirm.wav",
+    result: "/audio/sfx/result.wav",
   },
 
   // デフォルト音量設定（0.0 - 1.0）

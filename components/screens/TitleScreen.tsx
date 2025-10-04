@@ -19,8 +19,8 @@ export function TitleScreen() {
   // 初回マウント時にAudioContext初期化とBGM再生
   useEffect(() => {
     audioManager.initAudioContext();
-    // タイトル画面のBGMは実際の音源ファイルが必要なのでコメントアウト
-    // audioManager.playBGM("title");
+    // タイトル画面のBGM再生（ダミーWAVファイル使用）
+    audioManager.playBGM("title");
   }, []);
 
   const startTutorial = () => {

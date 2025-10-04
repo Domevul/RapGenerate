@@ -606,11 +606,68 @@
 - 設定ファイルでBPM、音量、ファイルパスを一元管理
 - 音声ファイルの差し替えが容易な設計
 
+#### ✅ テスト環境 (実装完了)
+- Vitest + React Testing Library によるテスト環境
+- ゲームロジックのユニットテスト (11テスト)
+- TDD（テスト駆動開発）の原則に基づく開発フロー
+- コードカバレッジ計測機能
+
 #### 📝 未実装機能
 - BGM音源ファイル (現在はプログラム生成ビートのみ)
 - 音声合成 (コロケーション読み上げ) - 将来的に実装
 - 複数敵キャラクター (フェーズ2)
-- チュートリアルレベル2-3
+- チュートリアルレベル3
+
+---
+
+## テスト環境
+
+### テストフレームワーク
+- **Vitest** - 高速でモダンなテストフレームワーク
+- **React Testing Library** - Reactコンポーネントのテスト
+- **@testing-library/jest-dom** - カスタムマッチャー
+- **@vitest/coverage-v8** - カバレッジ計測ツール
+
+### TDD（テスト駆動開発）
+このプロジェクトでは**t-wadaの手法**に沿ったTDDを採用：
+
+1. **Red**: まずテストを書く（失敗することを確認）
+2. **Green**: 最小限のコードでテストを成功させる
+3. **Refactor**: コードを改善する
+
+**重要**: コード変更前に必ず `npm test -- --run` でテストを実行し、全テストが成功することを確認すること。
+
+### テストスクリプト
+```bash
+npm test              # テスト実行（watch mode）
+npm test -- --run     # テスト実行（1回のみ）
+npm run test:ui       # UI付きテスト実行
+npm run test:coverage # カバレッジ計測
+```
+
+### 実装済みテスト
+#### `lib/game-logic.test.ts` (11テスト)
+- **calculateRhythmEvaluation**: リズムスコア計算
+  - Perfect判定のみの場合、満点を返す
+  - 判定が混在する場合、適切なスコアを計算する
+  - 空の配列の場合、スコア0を返す
+- **calculateRhymingChainEvaluation**: ライミングチェーン評価
+  - 同じ韻が連続する場合、チェーンボーナスを適用する
+  - 韻が揃っていない場合、低いスコアを返す
+  - nullが含まれている場合は除外して計算する
+- **calculateTypeCompatibilityEvaluation**: タイプ相性評価
+  - #攻撃に対して#カウンターが有効な場合、高スコアを返す
+  - タイプ相性が悪い場合、低スコアを返す
+- **calculateTurnResult**: ターン結果統合
+  - すべての要素を統合して総合スコアを計算する
+- **initializeRemainingCollocations**: 残りカード初期化
+  - デッキから残りコロケーションを初期化する
+- **updateRemainingCollocations**: 残りカード更新
+  - 使用したコロケーションを削除する
+
+### テスト設定ファイル
+- `vitest.config.ts` - Vitest設定
+- `vitest.setup.ts` - テスト環境セットアップ
 
 ---
 

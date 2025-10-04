@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TutorialModal } from "@/components/ui/tutorial-modal";
 import { useGameStore } from "@/lib/store";
 import { GAME_CONFIG } from "@/lib/constants";
+import { audioManager } from "@/lib/audio-manager";
 
 export function EnemyTurnScreen() {
   const currentEnemyTurnInfo = useGameStore(
@@ -22,6 +23,9 @@ export function EnemyTurnScreen() {
 
   useEffect(() => {
     generateEnemyTurn();
+
+    // BGMをバトル画面用に切り替え
+    audioManager.playBGM("battle");
 
     // チュートリアルモードの場合、少し待ってからモーダル表示
     if (tutorialState.isActive && tutorialState.currentLevel === 1) {
