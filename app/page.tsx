@@ -8,9 +8,11 @@ import { BattlePrepareScreen } from "@/components/screens/BattlePrepareScreen";
 import { BattleAttackScreen } from "@/components/screens/BattleAttackScreen";
 import { TurnResultScreen } from "@/components/screens/TurnResultScreen";
 import { FinalResultScreen } from "@/components/screens/FinalResultScreen";
+import { ErrorScreen } from "@/components/screens/ErrorScreen";
 
 export default function GameRouter() {
   const currentScreen = useGameStore((state) => state.currentScreen);
+  const errorType = useGameStore((state) => state.errorType);
 
   return (
     <main className="min-h-screen">
@@ -21,6 +23,7 @@ export default function GameRouter() {
       {currentScreen === "battle-attack" && <BattleAttackScreen />}
       {currentScreen === "turn-result" && <TurnResultScreen />}
       {currentScreen === "final-result" && <FinalResultScreen />}
+      {currentScreen === "error" && errorType && <ErrorScreen errorType={errorType} />}
     </main>
   );
 }

@@ -8,6 +8,8 @@ import type {
   TurnResult,
   RemainingCollocations,
   EnemyTurnInfo,
+  CardAnnotation,
+  AnnotationContext,
 } from "./types";
 import {
   RHYMING_CHAIN_MULTIPLIERS,
@@ -194,7 +196,7 @@ export function updateRemainingCollocations(
   };
 }
 
-// 敵のターン情報を生成
+// 敵のターン情報を生成（現在は使用されていない - getEnemyRapを使用）
 export function generateEnemyTurnInfo(
   enemyCollocation: Collocation
 ): EnemyTurnInfo {
@@ -202,7 +204,9 @@ export function generateEnemyTurnInfo(
   const hintRhyming = RHYMING_HINTS[enemyCollocation.rhyming] || "不明";
 
   return {
-    collocation: enemyCollocation,
+    lyrics: enemyCollocation.text,
+    type: enemyCollocation.type,
+    rhyming: enemyCollocation.rhyming,
     hintMood,
     hintRhyming,
   };
@@ -229,4 +233,66 @@ export function initializeRemainingCollocations(
       D: deck.filter((c) => c.rhyming === "D"),
     },
   };
+}
+
+// カードアノテーションを計算
+export function calculateCardAnnotations(
+  collocation: Collocation,
+  context: AnnotationContext
+): CardAnnotation[] {
+  const annotations: CardAnnotation[] = [];
+
+  // ライミングチェーン判定
+  const validSelected = context.selectedCollocations.filter(
+    (c): c is Collocation => c !== null
+  );
+
+  if (validSelected.length > 0 && collocation.rhyming !== "-") {
+    // 同じライミンググループが既に選択されているかチェック
+    const sameRhymingCount = validSelected.filter(
+      (c) => c.rhyming === collocation.rhyming
+    ).length;
+
+    if (sameRhymingCount > 0) {
+      const chainLength = sameRhymingCount + 1;
+      const multiplier = RHYMING_CHAIN_MULTIPLIERS[chainLength] || 1.0;
+
+      annotations.push({
+        icon: "🔗".repeat(chainLength),
+        text: `${chainLength}チェーン達成!`,
+        subtext: `ボーナス: x${multiplier}倍`,
+        type: "chain",
+      });
+    }
+  }
+
+  // タイプ相性判定
+  if (context.enemyType) {
+    const compatibility = TYPE_COMPATIBILITY_TABLE.find(
+      (c) =>
+        c.enemyType === context.enemyType &&
+        c.effectiveType === collocation.type
+    );
+
+    if (compatibility) {
+      annotations.push({
+        icon: "🎯",
+        text: "タイプ相性良し!",
+        subtext: `ボーナス: x${compatibility.multiplier}倍`,
+        type: "typeMatch",
+      });
+    }
+  }
+
+  // 残り枚数警告
+  const remaining = context.remainingByRhyming[collocation.rhyming];
+  if (remaining <= 2 && remaining > 0) {
+    annotations.push({
+      icon: "⚠️",
+      text: `韻${collocation.rhyming}残り${remaining}枚`,
+      type: "warning",
+    });
+  }
+
+  return annotations;
 }

@@ -7,6 +7,10 @@ import type {
   SelectedTurnCollocations,
   FillerTapResult,
   TurnResult,
+  TutorialState,
+  TutorialLevel,
+  TutorialStep,
+  UISupportSettings,
 } from "./types";
 import { getDefaultEnemy } from "./enemy-data";
 import { GAME_CONFIG } from "./constants";
@@ -16,6 +20,7 @@ import {
   generateEnemyTurnInfo,
   getRandomCollocationFromDeck,
 } from "./game-logic";
+import { getRandomEnemyRap, TUTORIAL_ENEMY_RAP, TUTORIAL_LEVEL2_RAPS } from "./enemy-raps";
 
 interface GameStore extends GameState {
   // 画面遷移
@@ -51,6 +56,21 @@ interface GameStore extends GameState {
 
   // ゲームリセット
   resetGame: () => void;
+
+  // チュートリアル
+  tutorialState: TutorialState;
+  setTutorialLevel: (level: TutorialLevel) => void;
+  setTutorialStep: (step: TutorialStep | null) => void;
+  completeTutorialLevel: (level: TutorialLevel) => void;
+  skipTutorial: () => void;
+  setTutorialActive: (active: boolean) => void;
+
+  // UI支援設定
+  uiSupport: UISupportSettings;
+  updateUISupportSettings: (settings: Partial<UISupportSettings>) => void;
+
+  // エラー管理
+  setError: (errorType: "resource-depleted" | "unknown" | null) => void;
 }
 
 const initialState: GameState = {
@@ -75,10 +95,64 @@ const initialState: GameState = {
   totalScore: 0,
   isGameStarted: false,
   isGameFinished: false,
+  errorType: null,
+};
+
+// チュートリアル初期状態
+const initialTutorialState: TutorialState = {
+  isActive: false,
+  currentLevel: 1,
+  completedLevels: [],
+  currentStep: null,
+  skipped: false,
+  restrictions: {
+    1: {
+      strategySelection: false,
+      deckBuilder: false,
+      turnCount: 1,
+      timeLimit: null,
+      showHints: true,
+      highlightRecommended: true,
+    },
+    2: {
+      strategySelection: true,
+      deckBuilder: false,
+      turnCount: 2,
+      timeLimit: 10000,
+      showHints: true,
+      highlightRecommended: true,
+    },
+    3: {
+      strategySelection: true,
+      deckBuilder: true,
+      turnCount: 2,
+      timeLimit: 8000,
+      showHints: true,
+      highlightRecommended: false,
+    },
+  },
+};
+
+// UI支援設定の初期状態
+const initialUISupportSettings: UISupportSettings = {
+  hintsEnabled: true,
+  deckDisplayEnabled: true,
+  chainPredictionEnabled: true,
+  typeMatchingEnabled: true,
+  comboTimeLimit: 8,
+  tapJudgement: "normal",
+  bgmVolume: 70,
+  seVolume: 80,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
+
+  // チュートリアル状態
+  tutorialState: initialTutorialState,
+
+  // UI支援設定
+  uiSupport: initialUISupportSettings,
 
   setScreen: (screen) => set({ currentScreen: screen }),
 
@@ -136,12 +210,43 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   generateEnemyTurn: () =>
     set((state) => {
-      const enemyCollocation = getRandomCollocationFromDeck(
-        state.enemyCharacter.deck.collocations
-      );
-      const enemyTurnInfo = generateEnemyTurnInfo(enemyCollocation);
+      // チュートリアルレベル1: 固定の敵ラップ
+      if (state.tutorialState.isActive && state.tutorialState.currentLevel === 1) {
+        return {
+          currentEnemyTurnInfo: {
+            lyrics: TUTORIAL_ENEMY_RAP.lyrics,
+            type: TUTORIAL_ENEMY_RAP.type,
+            rhyming: TUTORIAL_ENEMY_RAP.rhyming,
+            hintMood: TUTORIAL_ENEMY_RAP.hintMood,
+            hintRhyming: TUTORIAL_ENEMY_RAP.hintRhyming,
+          },
+        };
+      }
+
+      // チュートリアルレベル2: 2ターン分の固定ラップ
+      if (state.tutorialState.isActive && state.tutorialState.currentLevel === 2) {
+        const rap = state.currentTurn === 1 ? TUTORIAL_LEVEL2_RAPS.turn1 : TUTORIAL_LEVEL2_RAPS.turn2;
+        return {
+          currentEnemyTurnInfo: {
+            lyrics: rap.lyrics,
+            type: rap.type,
+            rhyming: rap.rhyming,
+            hintMood: rap.hintMood,
+            hintRhyming: rap.hintRhyming,
+          },
+        };
+      }
+
+      // 通常モード: ターンに応じてオリジナルラップを取得
+      const enemyRap = getRandomEnemyRap(state.currentTurn as 1 | 2);
       return {
-        currentEnemyTurnInfo: enemyTurnInfo,
+        currentEnemyTurnInfo: {
+          lyrics: enemyRap.lyrics,
+          type: enemyRap.type,
+          rhyming: enemyRap.rhyming,
+          hintMood: enemyRap.hintMood,
+          hintRhyming: enemyRap.hintRhyming,
+        },
       };
     }),
 
@@ -237,5 +342,65 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...initialState,
       playerDeck: state.playerDeck,
       enemyCharacter: state.enemyCharacter,
+      tutorialState: state.tutorialState,
+      uiSupport: state.uiSupport,
     })),
+
+  // チュートリアルアクション
+  setTutorialLevel: (level) =>
+    set((state) => ({
+      tutorialState: {
+        ...state.tutorialState,
+        currentLevel: level,
+      },
+    })),
+
+  setTutorialStep: (step) =>
+    set((state) => ({
+      tutorialState: {
+        ...state.tutorialState,
+        currentStep: step,
+      },
+    })),
+
+  completeTutorialLevel: (level) =>
+    set((state) => ({
+      tutorialState: {
+        ...state.tutorialState,
+        completedLevels: [...state.tutorialState.completedLevels, level],
+      },
+    })),
+
+  skipTutorial: () =>
+    set((state) => ({
+      tutorialState: {
+        ...state.tutorialState,
+        isActive: false,
+        skipped: true,
+      },
+    })),
+
+  setTutorialActive: (active) =>
+    set((state) => ({
+      tutorialState: {
+        ...state.tutorialState,
+        isActive: active,
+      },
+    })),
+
+  // UI支援設定アクション
+  updateUISupportSettings: (settings) =>
+    set((state) => ({
+      uiSupport: {
+        ...state.uiSupport,
+        ...settings,
+      },
+    })),
+
+  // エラー管理
+  setError: (errorType) =>
+    set({
+      errorType,
+      currentScreen: errorType ? "error" : get().currentScreen,
+    }),
 }));

@@ -6,13 +6,14 @@ export type GameScreen =
   | "battle-prepare"
   | "battle-attack"
   | "turn-result"
-  | "final-result";
+  | "final-result"
+  | "error";
 
 // コロケーションのタイプ
 export type CollocationType = "#攻撃" | "#自慢" | "#夢中" | "#カウンター";
 
 // ライミンググループ
-export type RhymingGroup = "A" | "B" | "C" | "D";
+export type RhymingGroup = "A" | "B" | "C" | "D" | "-";
 
 // タップ判定
 export type TapJudgement = "Perfect" | "Good" | "Bad" | "Miss";
@@ -92,7 +93,9 @@ export interface EnemyCharacter {
 
 // 敵のターン情報
 export interface EnemyTurnInfo {
-  collocation: Collocation;
+  lyrics: string; // 敵のラップ歌詞
+  type: CollocationType; // 敵のラップタイプ
+  rhyming: RhymingGroup; // 敵のラップの韻
   hintMood: string; // 雰囲気のヒント (例: "攻撃的")
   hintRhyming: string; // 韻のヒント (例: "A系(〜い、〜ない)")
 }
@@ -136,6 +139,9 @@ export interface GameState {
   // ゲームフラグ
   isGameStarted: boolean;
   isGameFinished: boolean;
+
+  // エラー状態
+  errorType: "resource-depleted" | "unknown" | null;
 }
 
 // タイプ相性テーブルのエントリー
@@ -192,4 +198,19 @@ export interface UISupportSettings {
   tapJudgement: "easy" | "normal" | "hard";
   bgmVolume: number;
   seVolume: number;
+}
+
+// カードアノテーション
+export interface CardAnnotation {
+  icon: string;
+  text: string;
+  subtext?: string;
+  type: "chain" | "typeMatch" | "warning";
+}
+
+// カードアノテーション計算用のコンテキスト
+export interface AnnotationContext {
+  selectedCollocations: (Collocation | null)[];
+  enemyType?: CollocationType;
+  remainingByRhyming: Record<RhymingGroup, number>;
 }

@@ -10,8 +10,36 @@ export function FinalResultScreen() {
   const turnResults = useGameStore((state) => state.turnResults);
   const resetGame = useGameStore((state) => state.resetGame);
   const setScreen = useGameStore((state) => state.setScreen);
+  const tutorialState = useGameStore((state) => state.tutorialState);
+  const setTutorialLevel = useGameStore((state) => state.setTutorialLevel);
+  const completeTutorialLevel = useGameStore((state) => state.completeTutorialLevel);
+  const setTutorialActive = useGameStore((state) => state.setTutorialActive);
 
   const isWin = totalScore >= WIN_CONDITION.MIN_SCORE;
+
+  // チュートリアルレベルクリア処理
+  const handleTutorialClear = () => {
+    if (!tutorialState.isActive) return;
+
+    const currentLevel = tutorialState.currentLevel;
+    completeTutorialLevel(currentLevel);
+
+    if (currentLevel === 1 && isWin) {
+      // レベル1クリア → レベル2へ
+      setTutorialLevel(2);
+      resetGame();
+      setScreen("deck-select");
+    } else if (currentLevel === 2 && isWin) {
+      // レベル2クリア → 通常モードへ
+      setTutorialActive(false);
+      resetGame();
+      setScreen("title");
+    } else {
+      // 失敗時は同じレベルをやり直し
+      resetGame();
+      setScreen("deck-select");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-900 via-black to-black p-4">
@@ -64,30 +92,76 @@ export function FinalResultScreen() {
               ))}
             </div>
 
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => {
-                  resetGame();
-                  setScreen("title");
-                }}
-                className="flex-1"
-              >
-                タイトルへ
-              </Button>
-              <Button
-                variant="neon"
-                size="lg"
-                onClick={() => {
-                  resetGame();
-                  setScreen("deck-select");
-                }}
-                className="flex-1"
-              >
-                もう一度
-              </Button>
-            </div>
+            {/* チュートリアルモードの場合 */}
+            {tutorialState.isActive ? (
+              <div className="space-y-3">
+                {isWin && tutorialState.currentLevel === 1 && (
+                  <div className="bg-cyan-900/50 p-4 rounded text-center">
+                    <p className="text-cyan-300 font-bold">
+                      🎊 チュートリアルレベル1クリア！
+                    </p>
+                    <p className="text-gray-300 text-sm mt-2">
+                      次はレベル2で戦略的な判断を学ぼう
+                    </p>
+                  </div>
+                )}
+                {isWin && tutorialState.currentLevel === 2 && (
+                  <div className="bg-cyan-900/50 p-4 rounded text-center">
+                    <p className="text-cyan-300 font-bold">
+                      🎊 チュートリアルレベル2クリア！
+                    </p>
+                    <p className="text-gray-300 text-sm mt-2">
+                      通常モードが解放されました！
+                    </p>
+                  </div>
+                )}
+                {!isWin && (
+                  <div className="bg-magenta-900/50 p-4 rounded text-center">
+                    <p className="text-magenta-300 font-bold">
+                      もう一度挑戦してみよう！
+                    </p>
+                  </div>
+                )}
+                <Button
+                  variant="neon"
+                  size="lg"
+                  onClick={handleTutorialClear}
+                  className="w-full"
+                >
+                  {isWin
+                    ? tutorialState.currentLevel === 1
+                      ? "レベル2へ進む"
+                      : "通常モードへ"
+                    : "もう一度挑戦"}
+                </Button>
+              </div>
+            ) : (
+              /* 通常モードの場合 */
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    resetGame();
+                    setScreen("title");
+                  }}
+                  className="flex-1"
+                >
+                  タイトルへ
+                </Button>
+                <Button
+                  variant="neon"
+                  size="lg"
+                  onClick={() => {
+                    resetGame();
+                    setScreen("deck-select");
+                  }}
+                  className="flex-1"
+                >
+                  もう一度
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

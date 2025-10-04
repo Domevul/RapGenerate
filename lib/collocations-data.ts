@@ -41,7 +41,22 @@ export const COLLOCATIONS_DATA: Collocation[] = [
   { id: "d06", text: "いらないアドバイス", type: "#攻撃", rhyming: "D" },
   { id: "d07", text: "返してもらうマイク", type: "#カウンター", rhyming: "D" },
   { id: "d08", text: "それはラップじゃなくて俳句", type: "#カウンター", rhyming: "D" },
+
+  // イントロ用コロケーション（ライミングなし）
+  { id: "intro_1", text: "わかるか", type: "#攻撃", rhyming: "-" },
+  { id: "intro_2", text: "聞いてくれ", type: "#夢中", rhyming: "-" },
+  { id: "intro_3", text: "教えてやる", type: "#自慢", rhyming: "-" },
+  { id: "intro_4", text: "知らねえ", type: "#カウンター", rhyming: "-" },
+  { id: "intro_5", text: "はいはい", type: "#カウンター", rhyming: "-" },
+
+  // エンディング用コロケーション（ライミングなし）
+  { id: "end_1", text: "わかったか", type: "#攻撃", rhyming: "-" },
+  { id: "end_2", text: "負けるはずがない", type: "#自慢", rhyming: "-" },
+  { id: "end_3", text: "お疲れ", type: "#夢中", rhyming: "-" },
 ];
+
+// すべてのコロケーション（tutorial-data用にエクスポート）
+export const ALL_COLLOCATIONS = COLLOCATIONS_DATA;
 
 // ライミンググループごとにコロケーションを取得
 export function getCollocationsByRhyming(rhyming: string): Collocation[] {

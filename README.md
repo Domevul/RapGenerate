@@ -10,6 +10,7 @@
 - **UI コンポーネント**: Shadcn UI
 - **状態管理**: Zustand
 - **アイコン**: Lucide React
+- **音声**: Web Audio API (プログラム生成ビート)
 
 ## プロジェクト構造
 
@@ -79,11 +80,51 @@ http://localhost:3000
 - アニメーション
 - ダークテーマ
 
+## 音楽・音声システム
+
+### 設定ファイル
+- `lib/audio-config.ts`: BPM、音量、ファイルパスを一元管理
+- `lib/audio-manager.ts`: 音声再生のシングルトンマネージャー
+
+### 実装済み機能
+- ✅ BPM120のビート音（Web Audio APIでプログラム生成）
+- ✅ タップ判定音（Perfect/Good/Bad/Miss）
+- ✅ 音量調整（BGM/効果音を個別に設定可能）
+- ✅ ビート同期システム
+
+### 音声ファイルの追加方法
+現在はプログラム生成のビート音のみ実装されています。将来的にBGMや高品質な効果音を追加する場合：
+
+1. 音声ファイルを配置:
+```
+public/audio/
+  bgm/
+    title.mp3
+    battle.mp3
+  sfx/
+    tap-perfect.mp3
+    tap-good.mp3
+    ...
+```
+
+2. `lib/audio-config.ts`でファイルパスを設定:
+```typescript
+bgm: {
+  title: "/audio/bgm/title.mp3",
+  battle: "/audio/bgm/battle.mp3",
+}
+```
+
+3. コンポーネントから再生:
+```typescript
+audioManager.playBGM("title");
+```
+
 ## 未実装機能
 
-- ⏳ バトル画面の実装
-- ⏳ バトルロジック（ターン制、タイマー、スコアリング）
-- ⏳ AIの実装（相手の行動）
+- ⏳ BGM音源ファイル（現在はプログラム生成ビートのみ）
+- ⏳ コロケーション音声合成（TTS）
+- ⏳ 複数敵キャラクター（フェーズ2）
 
 ## 開発メモ
 

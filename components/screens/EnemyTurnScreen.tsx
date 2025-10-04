@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TutorialModal } from "@/components/ui/tutorial-modal";
 import { useGameStore } from "@/lib/store";
 import { GAME_CONFIG } from "@/lib/constants";
 
@@ -14,17 +15,37 @@ export function EnemyTurnScreen() {
   const proceedToPlayerPrepare = useGameStore(
     (state) => state.proceedToPlayerPrepare
   );
+  const tutorialState = useGameStore((state) => state.tutorialState);
+  const setTutorialStep = useGameStore((state) => state.setTutorialStep);
+
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
 
   useEffect(() => {
     generateEnemyTurn();
 
-    const timer = setTimeout(() => {
-      proceedToPlayerPrepare();
-    }, GAME_CONFIG.ENEMY_TURN_DURATION);
+    // チュートリアルモードの場合、少し待ってからモーダル表示
+    if (tutorialState.isActive && tutorialState.currentLevel === 1) {
+      const modalTimer = setTimeout(() => {
+        setShowTutorialModal(true);
+        setTutorialStep("enemy-turn-intro");
+      }, 3000); // 3秒後にモーダル表示
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(modalTimer);
+    } else {
+      // 通常モード
+      const timer = setTimeout(() => {
+        proceedToPlayerPrepare();
+      }, GAME_CONFIG.ENEMY_TURN_DURATION);
+
+      return () => clearTimeout(timer);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Intentionally empty - run once on mount
+
+  const handleTutorialNext = () => {
+    setShowTutorialModal(false);
+    proceedToPlayerPrepare();
+  };
 
   if (!currentEnemyTurnInfo) {
     return null;
@@ -42,7 +63,7 @@ export function EnemyTurnScreen() {
           <CardContent className="space-y-6">
             <div className="text-center py-8">
               <p className="text-3xl text-white font-bold animate-pulse">
-                {currentEnemyTurnInfo.collocation.text}
+                {currentEnemyTurnInfo.lyrics}
               </p>
             </div>
 
@@ -58,6 +79,16 @@ export function EnemyTurnScreen() {
           </CardContent>
         </Card>
       </div>
+
+      {/* チュートリアルモーダル */}
+      <TutorialModal
+        show={showTutorialModal}
+        title="相手が攻めてきた!"
+        message="さあ、4枚のカードを選んで返そう!
+💡 韻を揃えるとボーナスがもらえるよ"
+        onNext={handleTutorialNext}
+        nextButtonText="カードを選ぶ"
+      />
     </div>
   );
 }

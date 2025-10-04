@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/store";
 import { getRandomFiller } from "@/lib/fillers-data";
 import { calculateTurnResult } from "@/lib/game-logic";
+import { audioManager } from "@/lib/audio-manager";
 import type { TapJudgement, FillerTapResult } from "@/lib/types";
 
 // BPM120 = 1拍500ms
 const BPM = 120;
 const BEAT_DURATION = 60000 / BPM; // 500ms
-const TOTAL_DURATION = BEAT_DURATION * 16; // 16拍 = 8秒
+// コロケーション4つ(各2拍) + フィラー3つ(各1拍) = 11拍
+const TOTAL_DURATION = BEAT_DURATION * 11; // 11拍 = 5500ms
 
 type TimelineItem = {
   type: "collocation" | "filler";
@@ -97,6 +99,8 @@ export function BattleAttackScreen() {
             setCountDown(0);
             setIsPlaying(true);
             startTimeRef.current = Date.now();
+            // ビート開始
+            audioManager.startBeat();
           }, 500);
           return 0;
         }
@@ -118,7 +122,8 @@ export function BattleAttackScreen() {
       if (elapsed >= TOTAL_DURATION) {
         // 終了処理
         setIsPlaying(false);
-        const enemyType = currentEnemyTurnInfo?.collocation.type || "#攻撃";
+        audioManager.stopBeat();
+        const enemyType = currentEnemyTurnInfo?.type || "#攻撃";
         const result = calculateTurnResult(
           Object.values(selectedTurnCollocations),
           enemyType,
@@ -207,6 +212,9 @@ export function BattleAttackScreen() {
     // エフェクトとコンボ
     addTapEffect(e.clientX, e.clientY, judgement);
     updateCombo(judgement);
+
+    // 効果音再生
+    audioManager.playTapSound(judgement);
   };
 
   // フィラーボタンタップ（自由リズム）
@@ -238,6 +246,9 @@ export function BattleAttackScreen() {
     // エフェクトとコンボ
     addTapEffect(e.clientX, e.clientY, judgement);
     updateCombo(judgement);
+
+    // 効果音再生
+    audioManager.playTapSound(judgement);
   };
 
   // 全歌詞

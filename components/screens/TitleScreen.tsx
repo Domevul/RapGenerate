@@ -1,14 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { Settings } from "lucide-react";
 import { useGameStore } from "@/lib/store";
+import { audioManager } from "@/lib/audio-manager";
+import { SettingsScreen } from "./SettingsScreen";
 
 export function TitleScreen() {
   const setScreen = useGameStore((state) => state.setScreen);
+  const setTutorialActive = useGameStore((state) => state.setTutorialActive);
+  const setTutorialLevel = useGameStore((state) => state.setTutorialLevel);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // 初回マウント時にAudioContext初期化とBGM再生
+  useEffect(() => {
+    audioManager.initAudioContext();
+    // タイトル画面のBGMは実際の音源ファイルが必要なのでコメントアウト
+    // audioManager.playBGM("title");
+  }, []);
+
+  const startTutorial = () => {
+    setTutorialActive(true);
+    setTutorialLevel(1);
+    setScreen("deck-select"); // チュートリアルはdeck-selectから開始（自動的にプリセットデッキ適用）
+  };
 
   const tutorialSteps = [
     {
@@ -46,6 +65,16 @@ export function TitleScreen() {
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-purple-900 via-black to-black p-4">
       <div className="absolute inset-0 z-0 bg-black opacity-50"></div>
 
+      {/* 設定ボタン */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowSettings(true)}
+        className="absolute top-4 right-4 z-10 text-[hsl(var(--neon-cyan))] hover:bg-[hsl(var(--muted))]/50"
+      >
+        <Settings className="w-6 h-6" />
+      </Button>
+
       <div className="relative z-10 flex w-full max-w-md flex-col items-center space-y-12 text-center">
         <h1 className="text-7xl font-bold text-white md:text-8xl">
           <span className="neon-glow-cyan text-cyan-400">MC</span>
@@ -61,6 +90,14 @@ export function TitleScreen() {
             onClick={() => setScreen("deck-select")}
           >
             はじめる
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full bg-[hsl(var(--neon-cyan))]/20 border-[hsl(var(--neon-cyan))]"
+            onClick={startTutorial}
+          >
+            チュートリアル
           </Button>
           <Button
             variant="outline"
@@ -88,6 +125,8 @@ export function TitleScreen() {
           tutorialStep === tutorialSteps.length - 1 ? "はじめる" : "次へ"
         }
       />
+
+      {showSettings && <SettingsScreen onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
